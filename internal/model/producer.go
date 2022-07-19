@@ -10,6 +10,7 @@ import (
 //TaskFromAPI task format to be received from API service
 type TaskFromAPI struct {
 	URL       string   `json:"url"`       //main task url to work with
+	Email     string   `json:"email"`     //user email to send response back
 	ForwardTo []string `json:"forwardTo"` //list of test-services topics names to send results to
 }
 

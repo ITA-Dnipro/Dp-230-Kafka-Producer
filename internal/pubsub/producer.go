@@ -66,5 +66,6 @@ func (prod *Producer) PublicMessage(ctx context.Context, message *model.MessageP
 
 //Close closes producers' KafkaWriter
 func (prod *Producer) Close() error {
+	log.Println("closing message producer")
 	return prod.kafkaWriter.Close()
 }
