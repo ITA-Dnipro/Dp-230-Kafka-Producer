@@ -8,17 +8,18 @@ import (
 	"os/signal"
 	"syscall"
 
-	"parabellum.kproducer/internal/httpserve"
 	"parabellum.kproducer/internal/model"
+	"parabellum.kproducer/internal/network"
 	"parabellum.kproducer/internal/pubsub"
 )
 import "github.com/joho/godotenv"
 
 var TopicName string
 
-type Config struct {
+type AppConfig struct {
 	Producer *pubsub.Producer
-	Http     *httpserve.ServerHTTP
+	Http     *network.ServerHTTP
+	Grpc     *network.ClientGRPC
 }
 
 func init() {
@@ -33,14 +34,14 @@ func main() {
 	exitCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 	defer stop()
 
-	app := new(Config)
-
+	app := new(AppConfig)
 	app.Producer = pubsub.NewProducer(pubsub.RealKafkaWriter(os.Getenv("KAFKA_URL"), TopicName), TopicName)
 	defer app.Producer.Close()
-
-	app.Http = httpserve.New(fmt.Sprintf(":%s", os.Getenv("HTTP_PORT")))
+	app.Http = network.NewServerHTTP(fmt.Sprintf(":%s", os.Getenv("HTTP_ADDR")))
 	app.Http.Start()
 	defer app.Http.Close()
+	app.Grpc = network.NewClientGRPC(exitCtx, os.Getenv("GRPC_ADDR"))
+	defer app.Grpc.Close()
 
 	var gotFromUser model.TaskFromAPI
 	for {
@@ -60,16 +61,16 @@ func main() {
 			continue
 		}
 
-		//TODO: send data to Mongo over DBservice & receive task ID
-		stubFromDB := model.TaskProduce{
-			TaskFromAPI: gotFromUser,
-			ID:          "main-task-db-id-1",
+		gotFromDB, err := app.Grpc.CreateNewTask(gotFromUser)
+		if err != nil {
+			log.Println("Error when creating new task in DB:\t", err)
+			continue
 		}
 
-		message := model.NewMessageProduce(&stubFromDB)
-		err := app.Producer.PublicMessage(exitCtx, message)
+		message := model.NewMessageProduce(&gotFromDB)
+		err = app.Producer.PublicMessage(exitCtx, message)
 		if err != nil {
-			log.Printf("Error producing message [%s] to <%s>:\t%v", stubFromDB, TopicName, err)
+			log.Printf("Error producing message [%s] to <%s>:\t%v", gotFromDB, TopicName, err)
 		}
 	}
 }

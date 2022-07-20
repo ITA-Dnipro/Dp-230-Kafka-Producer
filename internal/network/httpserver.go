@@ -1,4 +1,4 @@
-package httpserve
+package network
 
 import (
 	"context"
@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"time"
 
-	kproducer "parabellum.kproducer"
+	"parabellum.kproducer/internal/config"
 	"parabellum.kproducer/internal/model"
 )
 
@@ -40,15 +40,15 @@ func getTaskFromRequest(reqValues url.Values) model.TaskFromAPI {
 			result.URL = curVal
 		case "TestSQLI":
 			if chk, err := strconv.ParseBool(curVal); err == nil && chk {
-				result.ForwardTo = append(result.ForwardTo, kproducer.TopicSQLI)
+				result.ForwardTo = append(result.ForwardTo, config.TopicSQLI)
 			}
 		case "TestXSS":
 			if chk, err := strconv.ParseBool(curVal); err == nil && chk {
-				result.ForwardTo = append(result.ForwardTo, kproducer.TopicXSS)
+				result.ForwardTo = append(result.ForwardTo, config.TopicXSS)
 			}
 		case "Test5XX":
 			if chk, err := strconv.ParseBool(curVal); err == nil && chk {
-				result.ForwardTo = append(result.ForwardTo, kproducer.Topic5XX)
+				result.ForwardTo = append(result.ForwardTo, config.Topic5XX)
 			}
 		}
 	}
@@ -73,7 +73,7 @@ func (srv *ServerHTTP) serveMainPage(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "./templates/index.html")
 }
 
-func New(addr string, midl ...http.Handler) *ServerHTTP {
+func NewServerHTTP(addr string, midl ...http.Handler) *ServerHTTP {
 	cert, err := tls.LoadX509KeyPair("server.crt", "server.key")
 	var tlsConf *tls.Config
 	if err != nil {

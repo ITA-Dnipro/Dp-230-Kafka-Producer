@@ -1,4 +1,4 @@
-package kproducer
+package config
 
 const (
 	TopicSQLI = "SQLI-check"
