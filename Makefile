@@ -1,4 +1,4 @@
-APP_NAME := crawler
+APP_NAME := kafka-producer
 APP_DIR := cmd/app
 
 MAKEFILE_PATH := $(abspath $(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
