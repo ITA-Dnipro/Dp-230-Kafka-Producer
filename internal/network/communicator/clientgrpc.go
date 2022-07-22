@@ -13,8 +13,9 @@ import (
 )
 
 type ClientGRPC struct {
-	client *grpc.ClientConn
-	ctx    context.Context
+	client     pb.ReportServiceClient
+	connection *grpc.ClientConn
+	ctx        context.Context
 }
 
 func NewClientGRPC(ctx context.Context, serverAddr string) *ClientGRPC {
@@ -24,8 +25,9 @@ func NewClientGRPC(ctx context.Context, serverAddr string) *ClientGRPC {
 	}
 
 	return &ClientGRPC{
-		client: conn,
-		ctx:    ctx,
+		client:     pb.NewReportServiceClient(conn),
+		connection: conn,
+		ctx:        ctx,
 	}
 }
 
@@ -35,16 +37,12 @@ func (gr *ClientGRPC) CreateNewTask(taskData model.TaskFromAPI) (model.TaskProdu
 		ID:          "",
 	}
 
-	//TODO: will complete, when have correct .proto published
 	request := &pb.CreateReq{URL: taskData.URL, Email: taskData.Email, TotalTestCount: int64(len(taskData.ForwardTo))}
-	//response, err := gr.client.Create(gr.ctx, request)
-	//if err != nil {
-	//	return result, err
-	//}
-	//result.ID = response.ID
-
-	_ = request
-	result.ID = "stub-until-i-have-proto"
+	response, err := gr.client.Create(gr.ctx, request)
+	if err != nil {
+		return result, err
+	}
+	result.ID = response.Report.ID
 
 	return result, nil
 }
@@ -52,5 +50,5 @@ func (gr *ClientGRPC) CreateNewTask(taskData model.TaskFromAPI) (model.TaskProdu
 func (gr *ClientGRPC) Close() error {
 	log.Println("Closing grpc-client")
 
-	return gr.client.Close()
+	return gr.connection.Close()
 }
