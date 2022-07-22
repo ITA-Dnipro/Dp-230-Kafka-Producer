@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/segmentio/kafka-go"
 	"parabellum.kproducer/internal/model"
+
+	"github.com/segmentio/kafka-go"
 )
 
 //KafkaWriter interface mostly for test implementing purposes
@@ -19,6 +20,8 @@ type KafkaWriter interface {
 type Producer struct {
 	Topic       string      //topic name
 	kafkaWriter KafkaWriter //writer itself
+
+	ctx context.Context
 }
 
 //RealKafkaWriter returns filled kafka.Writer from kafka-go lib
@@ -31,16 +34,17 @@ func RealKafkaWriter(url, topic string) *kafka.Writer {
 }
 
 //NewProducer is a constructor for [pubsub.Producer]
-func NewProducer(kwr KafkaWriter, topic string) *Producer {
+func NewProducer(ctx context.Context, kwr KafkaWriter, topic string) *Producer {
 	result := new(Producer)
 	result.kafkaWriter = kwr
 	result.Topic = topic
+	result.ctx = ctx
 
 	return result
 }
 
 //PublicMessage sends given message to a pubsub instance of KafkaWriter into a [producer.Topic] topic
-func (prod *Producer) PublicMessage(ctx context.Context, message *model.MessageProduce) error {
+func (prod *Producer) PublicMessage(message *model.MessageProduce) error {
 	valueJson, err := json.Marshal(message.Value)
 	if err != nil {
 		log.Printf("Error marshalling %v to json: %v\n", message.Value, err)
@@ -61,11 +65,12 @@ func (prod *Producer) PublicMessage(ctx context.Context, message *model.MessageP
 	}
 	log.Println("\t", msgOut)
 
-	return prod.kafkaWriter.WriteMessages(ctx, msg)
+	return prod.kafkaWriter.WriteMessages(prod.ctx, msg)
 }
 
 //Close closes producers' KafkaWriter
 func (prod *Producer) Close() error {
-	log.Println("closing message producer")
+	log.Println("Closing message producer")
+
 	return prod.kafkaWriter.Close()
 }
