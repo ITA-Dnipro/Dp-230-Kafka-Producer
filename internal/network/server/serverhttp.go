@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -14,13 +15,15 @@ type HTTP struct {
 }
 
 func NewServerHTTP(addr string) *HTTP {
-	cert, err := tls.LoadX509KeyPair("server.crt", "server.key")
 	var tlsConf *tls.Config
+	certPath := os.Getenv("PATH_TO_CERTS")
+	cert, err := tls.LoadX509KeyPair(certPath+"server.crt", certPath+"server.key")
 	if err != nil {
-		log.Println("Error getting tls-certificate")
+		log.Println("Error getting tls-certificate\t", err)
 	} else {
-		tlsConf = new(tls.Config)
-		tlsConf.Certificates = []tls.Certificate{cert}
+		tlsConf = &tls.Config{
+			Certificates: []tls.Certificate{cert},
+		}
 	}
 
 	return &HTTP{
@@ -43,7 +46,10 @@ func (srv *HTTP) Start(router http.Handler) {
 	if srv.Server.TLSConfig == nil {
 		err = http.ListenAndServe(srv.Server.Addr, router)
 	} else {
-		err = http.ListenAndServeTLS(srv.Server.Addr, "server.crt", "server.key", router)
+		certPath := os.Getenv("PATH_TO_CERTS")
+		err = http.ListenAndServeTLS(srv.Server.Addr,
+			certPath+"server.crt", certPath+"server.key",
+			router)
 	}
 	if err != nil && err != http.ErrServerClosed {
 		log.Fatalf("http-server listen and serve error: %v\n", err)

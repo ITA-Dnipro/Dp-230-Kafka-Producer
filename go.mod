@@ -6,7 +6,6 @@ require (
 	github.com/ITA-Dnipro/Dp-230-Result-Collector v0.0.0-20220721111407-5b5ba010419e
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/google/uuid v1.3.0
-	github.com/joho/godotenv v1.4.0
 	github.com/segmentio/kafka-go v0.4.32
 	google.golang.org/grpc v1.48.0
 )

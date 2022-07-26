@@ -1,10 +1,11 @@
-package handlers
+package handler
 
 import (
 	"context"
 	"log"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 
 	"parabellum.kproducer/internal/config"
@@ -34,7 +35,7 @@ func (mh MainHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/html")
-	http.ServeFile(w, r, "./templates/index.html")
+	http.ServeFile(w, r, os.Getenv("PATH_TO_TEMPLATES")+"index.html")
 }
 
 func (mh MainHandler) forwardTheTask(r *http.Request) {

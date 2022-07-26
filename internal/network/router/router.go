@@ -5,10 +5,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 
-	"parabellum.kproducer/internal/network/router/handlers"
+	"parabellum.kproducer/internal/network/router/handler"
 )
 
-func NewRouter(mainHandler *handlers.MainHandler, reportHandler *handlers.ReportHandler) http.Handler {
+func NewRouter(mainHandler *handler.MainHandler, reportHandler *handler.ReportHandler) http.Handler {
 	router := chi.NewRouter()
 	router.Handle("/", mainHandler)
 	router.Method("GET", "/{taskID}", reportHandler)

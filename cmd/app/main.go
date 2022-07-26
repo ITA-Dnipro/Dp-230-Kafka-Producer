@@ -8,7 +8,7 @@ import (
 
 	"parabellum.kproducer/internal/config"
 	"parabellum.kproducer/internal/network/router"
-	"parabellum.kproducer/internal/network/router/handlers"
+	"parabellum.kproducer/internal/network/router/handler"
 )
 
 func main() {
@@ -17,7 +17,7 @@ func main() {
 
 	app := config.NewApp()
 	defer app.Close()
-	myRouter := router.NewRouter(handlers.NewMainHandler(exitCtx, app.Producer, app.Grpc), handlers.NewReportHandler())
+	myRouter := router.NewRouter(handler.NewMainHandler(exitCtx, app.Producer, app.Grpc), handler.NewReportHandler())
 
 	go app.Start(myRouter)
 

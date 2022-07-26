@@ -3,8 +3,6 @@ services:
   zookeeper:
     container_name: parabellum-zookeeper
     image: wurstmeister/zookeeper
-#    ports:
-#      - 2181:2181
 
   kafka:
     container_name: parabellum-kafka
@@ -12,9 +10,6 @@ services:
     restart: on-failure
     depends_on:
       - zookeeper
-#    ports:
-#      - 9092:9092
-#      - 9093:9093
     environment:
       KAFKA_VERSION: '2.3.1'
       KAFKA_BROKER_ID: '1'
