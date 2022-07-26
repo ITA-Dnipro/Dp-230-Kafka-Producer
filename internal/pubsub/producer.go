@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/segmentio/kafka-go"
 	"parabellum.kproducer/internal/model"
+
+	"github.com/segmentio/kafka-go"
 )
 
 //KafkaWriter interface mostly for test implementing purposes
@@ -32,11 +33,10 @@ func RealKafkaWriter(url, topic string) *kafka.Writer {
 
 //NewProducer is a constructor for [pubsub.Producer]
 func NewProducer(kwr KafkaWriter, topic string) *Producer {
-	result := new(Producer)
-	result.kafkaWriter = kwr
-	result.Topic = topic
-
-	return result
+	return &Producer{
+		Topic:       topic,
+		kafkaWriter: kwr,
+	}
 }
 
 //PublicMessage sends given message to a pubsub instance of KafkaWriter into a [producer.Topic] topic
@@ -66,6 +66,7 @@ func (prod *Producer) PublicMessage(ctx context.Context, message *model.MessageP
 
 //Close closes producers' KafkaWriter
 func (prod *Producer) Close() error {
-	log.Println("closing message producer")
+	log.Println("Closing message producer")
+
 	return prod.kafkaWriter.Close()
 }
