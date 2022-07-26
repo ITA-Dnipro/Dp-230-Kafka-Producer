@@ -15,10 +15,9 @@ import (
 type ClientGRPC struct {
 	client     pb.ReportServiceClient
 	connection *grpc.ClientConn
-	ctx        context.Context
 }
 
-func NewClientGRPC(ctx context.Context, serverAddr string) *ClientGRPC {
+func NewClientGRPC(serverAddr string) *ClientGRPC {
 	conn, err := grpc.Dial(serverAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Panicf("cannot connect to grpc server on\t%s, because of\t%v\n", serverAddr, err)
@@ -27,18 +26,17 @@ func NewClientGRPC(ctx context.Context, serverAddr string) *ClientGRPC {
 	return &ClientGRPC{
 		client:     pb.NewReportServiceClient(conn),
 		connection: conn,
-		ctx:        ctx,
 	}
 }
 
-func (gr *ClientGRPC) CreateNewTask(taskData model.TaskFromAPI) (model.TaskProduce, error) {
+func (gr *ClientGRPC) CreateNewTask(ctx context.Context, taskData model.TaskFromAPI) (model.TaskProduce, error) {
 	result := model.TaskProduce{
 		TaskFromAPI: taskData,
 		ID:          "",
 	}
 
 	request := &pb.CreateReq{URL: taskData.URL, Email: taskData.Email, TotalTestCount: int64(len(taskData.ForwardTo))}
-	response, err := gr.client.Create(gr.ctx, request)
+	response, err := gr.client.Create(ctx, request)
 	if err != nil {
 		return result, err
 	}

@@ -33,21 +33,17 @@ func NewServerHTTP(addr string) *HTTP {
 	}
 }
 
-func (srv *HTTP) SetRouter(r http.Handler) {
-	srv.Server.Handler = r
-}
-
 func (srv *HTTP) SetShutdownTimeout(t time.Duration) {
 	srv.shutdownTimeout = t
 }
 
-func (srv *HTTP) Start() {
+func (srv *HTTP) Start(router http.Handler) {
 	var err error
 	log.Println("Starting http-server on addr:\t", srv.Server.Addr)
 	if srv.Server.TLSConfig == nil {
-		err = srv.Server.ListenAndServe()
+		err = http.ListenAndServe(srv.Server.Addr, router)
 	} else {
-		err = srv.Server.ListenAndServeTLS("server.crt", "server.key")
+		err = http.ListenAndServeTLS(srv.Server.Addr, "server.crt", "server.key", router)
 	}
 	if err != nil && err != http.ErrServerClosed {
 		log.Fatalf("http-server listen and serve error: %v\n", err)

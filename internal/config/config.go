@@ -1,16 +1,14 @@
 package config
 
 import (
-	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 
 	"parabellum.kproducer/internal/network/communicator"
 	"parabellum.kproducer/internal/network/server"
 	"parabellum.kproducer/internal/pubsub"
-
-	"github.com/joho/godotenv"
 )
 
 const (
@@ -19,36 +17,59 @@ const (
 	Topic5XX  = "5XX-check"
 )
 
+var envDefaults = map[string]string{
+	"KAFKA_URL":       "kafka:9092",
+	"KAFKA_TOPIC_API": "API-Service-Message",
+	"HTTP_ADDR":       "8888",
+	"GRPC_ADDR":       "grpcserver:9090",
+}
+
 var TopicName string
 
-type AppConfig struct {
+type AppDependency struct {
 	Producer *pubsub.Producer
 	Http     *server.HTTP
 	Grpc     *communicator.ClientGRPC
 }
 
 func init() {
-	err := godotenv.Load()
+	err := setEnvDefaults()
 	if err != nil {
-		log.Panicln("Error loading .env file: ", err)
+		log.Panicln("Error setting default env parameters")
 	}
 	TopicName = os.Getenv("KAFKA_TOPIC_API")
 }
 
-func NewApp(ctx context.Context) *AppConfig {
-	app := new(AppConfig)
-	app.Grpc = communicator.NewClientGRPC(ctx, os.Getenv("GRPC_ADDR"))
-	app.Producer = pubsub.NewProducer(ctx, pubsub.RealKafkaWriter(os.Getenv("KAFKA_URL"), TopicName), TopicName)
-	app.Http = server.NewServerHTTP(fmt.Sprintf(":%s", os.Getenv("HTTP_ADDR")))
+func setEnvDefaults() error {
+	var err error
+	for env, val := range envDefaults {
+		if _, ok := os.LookupEnv(env); !ok {
+			err = os.Setenv(env, val)
+		}
+		if err != nil {
+			break
+		}
+	}
 
-	return app
+	return err
 }
 
-func (app *AppConfig) Start() {
-	app.Http.Start()
+func NewApp() *AppDependency {
+	kafkaPub := pubsub.RealKafkaWriter(os.Getenv("KAFKA_URL"), TopicName)
+	result := &AppDependency{
+		Producer: pubsub.NewProducer(kafkaPub, TopicName),
+		Http:     server.NewServerHTTP(fmt.Sprintf(":%s", os.Getenv("HTTP_ADDR"))),
+		Grpc:     communicator.NewClientGRPC(os.Getenv("GRPC_ADDR")),
+	}
+
+	return result
 }
 
-func (app *AppConfig) Close() error {
+func (app *AppDependency) Start(router http.Handler) {
+	app.Http.Start(router)
+}
+
+func (app *AppDependency) Close() error {
 	var err error
 
 	if app.Grpc.Close() != nil {
