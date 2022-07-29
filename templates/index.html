@@ -48,14 +48,22 @@
                 </div>
             </div>
         </div>
+
+        <hr class="mb-4">
+        <div class="row">
+            <div class="col-md-3 mb-3">
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="skipcrawler" value="true" name="SkipCrawler">
+                    <label class="custom-control-label" for="skipcrawler">Skip crawler</label>
+                </div>
+            </div>
+        </div>
+
+
         <hr class="mb-4">
         <h3><i class="fas fa-biohazard"></i>Tests to execute</h3>
         <div class="row">
             <div class="col-md-3 mb-3">
-                <div class="custom-control custom-switch">
-                    <input type="checkbox" class="custom-control-input" id="testsqli" value="true" name="TestSQLI" checked>
-                    <label class="custom-control-label" for="testsqli">SQL-injections</label>
-                </div>
                 <div class="custom-control custom-switch">
                     <input type="checkbox" class="custom-control-input" id="testxss" value="true" name="TestXSS" checked>
                     <label class="custom-control-label" for="testxss">XSS-vulnerabilities</label>
@@ -63,6 +71,10 @@
                 <div class="custom-control custom-switch">
                     <input type="checkbox" class="custom-control-input" id="test5xx" value="true" name="Test5XX" checked>
                     <label class="custom-control-label" for="test5xx">5XX-errors</label>
+                </div>
+                <div class="custom-control custom-switch">
+                    <input type="checkbox" class="custom-control-input" id="testsqli" value="true" name="TestSQLI">
+                    <label class="custom-control-label" for="testsqli">SQL-injections</label>
                 </div>
             </div>
         </div>

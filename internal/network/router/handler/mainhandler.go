@@ -73,6 +73,10 @@ func getTaskFromRequest(reqValues url.Values) model.TaskFromAPI {
 			result.Email = curVal
 		case "HostName":
 			result.URL = curVal
+		case "SkipCrawler":
+			if chk, err := strconv.ParseBool(curVal); err == nil && chk {
+				result.SkipCrawler = true
+			}
 		case "TestSQLI":
 			if chk, err := strconv.ParseBool(curVal); err == nil && chk {
 				result.ForwardTo = append(result.ForwardTo, config.TopicSQLI)
