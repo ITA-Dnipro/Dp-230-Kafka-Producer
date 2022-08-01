@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"html/template"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
 	"parabellum.kproducer/internal/config"
@@ -15,9 +17,15 @@ func main() {
 	exitCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
 	defer stop()
 
+	// TODO: don't panic
+	tmpl := template.Must(template.ParseFiles(filepath.Join("templates", "report.html")))
+
 	app := config.NewApp()
 	defer app.Close()
-	myRouter := router.NewRouter(handler.NewMainHandler(exitCtx, app.Producer, app.Grpc), handler.NewReportHandler())
+
+	mainHandler := handler.NewMainHandler(exitCtx, app.Producer, app.Grpc)
+	reportHandler := handler.NewReportHandler(app.Grpc, tmpl)
+	myRouter := router.NewRouter(mainHandler, reportHandler)
 
 	go app.Start(myRouter)
 

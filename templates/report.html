@@ -1,0 +1,113 @@
+<head>
+  <link rel="preconnect" href="https://fonts.gstatic.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&family=Mukta:wght@300;400;600;700;800&family=Noto+Sans:wght@400;700&display=swap"
+    rel="stylesheet"
+  />
+</head>
+
+<style>
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body {
+    font-family: Mukta, sans-serif;
+    height: 100vh;
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    color: #4f546c;
+    font-size: 0.9rem;
+    background-color: #f9fbff;
+  }
+
+  table {
+    border-collapse: collapse;
+    box-shadow: 0 5px 10px #e1e5ee;
+    background-color: white;
+    text-align: left;
+    padding: 1rem 2rem;
+    overflow: scroll;
+  }
+  thead {
+    box-shadow: 0 5px 10px #e1e5ee;
+  }
+
+  th {
+    padding: 1rem 2rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1rem;
+    font-size: 0.7rem;
+    font-weight: 900;
+  }
+
+  td {
+    padding: 1rem 2rem;
+  }
+
+  a {
+    text-decoration: none;
+    color: #2962ff;
+  }
+
+  .status {
+    border-radius: 0.2rem;
+    padding: 0.2rem 1rem;
+    text-align: center;
+  }
+  .Low {
+    background-color: #c8e6c9;
+    color: #388e3c;
+  }
+
+  .Medium {
+    background-color: #c8e6c9;
+    color: #388e3c;
+  }
+
+  .High {
+    background-color: #ffcdd2;
+    color: #c62828;
+  }
+
+  tr:nth-child(even) {
+    background-color: #f4f6fb;
+  }
+</style>
+
+<body>
+  {{ with .TestResults}} {{ range .}} {{ with .Results}} {{range .}} {{ with
+  .PoCs}}
+  <table>
+    <thead>
+      <tr>
+        <th>type</th>
+        <th>injection</th>
+        <th>method</th>
+        <th>param</th>
+        <th>payload</th>
+        <th>evidence</th>
+        <th>cwe</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range .}}
+      <tr>
+        <td>{{.Type}}</td>
+        <td>{{.InjectType}}</td>
+        <td>{{.Method}}</td>
+        <td>{{.Param}}</td>
+        <td>{{.Payload}}</td>
+        <td><a href="{{.Data}}">{{.Evidence}}</a></td>
+        <td><p class="status {{.Severity}}">{{.CWE}}</p></td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+  {{end}} {{end}} {{end}} {{end}} {{end}}
+</body>

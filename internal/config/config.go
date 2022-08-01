@@ -21,8 +21,8 @@ var envDefaults = map[string]string{
 	"KAFKA_URL":         "kafka:9092",
 	"KAFKA_TOPIC_API":   "API-Service-Message",
 	"HTTP_ADDR":         "8888",
-	"GRPC_ADDR":         "grpcserver:9090",
-	"PATH_TO_CERTS":     "./certs/",
+	"GRPC_ADDR":         ":9090",
+	"PATH_TO_CERTS":     "./certs-!!!!INVALID!!!!!/",
 	"PATH_TO_TEMPLATES": "./templates/",
 }
 
