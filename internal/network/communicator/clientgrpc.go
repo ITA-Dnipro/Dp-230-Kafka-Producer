@@ -45,6 +45,62 @@ func (gr *ClientGRPC) CreateNewTask(ctx context.Context, taskData model.TaskFrom
 	return result, nil
 }
 
+func (gr *ClientGRPC) GetReport(ctx context.Context, id string) (*model.Report, error) {
+	req := &pb.GetReportReq{ID: id}
+	res, err := gr.client.GetReport(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+	return ReportFromProto(res.GetReport()), nil
+}
+
+func ReportFromProto(report *pb.Report) *model.Report {
+	rep := &model.Report{
+		URL: report.URL,
+	}
+	for _, tr := range report.GetTestResults() {
+		rep.TestResults = append(rep.TestResults, TestResultFromProto(tr))
+	}
+	return rep
+}
+
+func TestResultFromProto(tr *pb.TestResult) model.TestResult {
+	r := model.TestResult{
+		Type: tr.Type,
+	}
+	for _, res := range tr.GetResults() {
+		r.Results = append(r.Results, ResultFromProto(res))
+	}
+	return r
+}
+
+func ResultFromProto(res *pb.Result) model.Result {
+	r := model.Result{
+		URL:       res.GetURL(),
+		StartTime: res.GetStartTime().AsTime(),
+		EndTime:   res.GetEndTime().AsTime(),
+	}
+	for _, poc := range res.GetPoCs() {
+		r.PoCs = append(r.PoCs, PoCFromProto(poc))
+	}
+	return r
+}
+
+func PoCFromProto(p *pb.PoC) model.PoC {
+	return model.PoC{
+		Type:       p.GetType(),
+		InjectType: p.GetInjectType(),
+		PoCType:    p.GetPoCType(),
+		Method:     p.GetMethod(),
+		Data:       p.GetData(),
+		Param:      p.GetParam(),
+		Payload:    p.GetPayload(),
+		Evidence:   p.GetEvidence(),
+		CWE:        p.GetSWE(),
+		Severity:   p.GetSeverity(),
+	}
+}
+
 func (gr *ClientGRPC) Close() error {
 	log.Println("Closing grpc-client")
 
