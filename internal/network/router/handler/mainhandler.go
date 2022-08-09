@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
@@ -31,17 +32,21 @@ func NewMainHandler(ctx context.Context, producer *pubsub.Producer, client *comm
 
 func (mh MainHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodPost {
-		mh.forwardTheTask(r)
+		mh.forwardTheTask(w, r)
+		return
 	}
 
 	w.Header().Set("Content-Type", "text/html")
 	http.ServeFile(w, r, os.Getenv("PATH_TO_TEMPLATES")+"index.html")
 }
 
-func (mh MainHandler) forwardTheTask(r *http.Request) {
+func (mh MainHandler) forwardTheTask(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html")
 	err := r.ParseForm()
 	if err != nil {
-		log.Println("Error getting user query\t", err)
+		errMsg := fmt.Sprintf("Error getting user query\t%v", err)
+		log.Println(errMsg)
+		http.Error(w, errMsg, http.StatusInternalServerError)
 
 		return
 	}
@@ -50,7 +55,9 @@ func (mh MainHandler) forwardTheTask(r *http.Request) {
 
 	gotFromDB, err := mh.GrpcClient.CreateNewTask(mh.ctx, gotFromUser)
 	if err != nil {
-		log.Println("Error when creating new task in DB:\t", err)
+		errMsg := fmt.Sprintf("Error when creating new task in DB:\t%v", err)
+		log.Println(errMsg)
+		http.Error(w, errMsg, http.StatusInternalServerError)
 
 		return
 	}
@@ -58,10 +65,16 @@ func (mh MainHandler) forwardTheTask(r *http.Request) {
 	message := model.NewMessageProduce(&gotFromDB)
 	err = mh.Producer.PublicMessage(mh.ctx, message)
 	if err != nil {
-		log.Printf("Error producing message [%s] to <%s>:\t%v", gotFromDB, config.TopicName, err)
+		errMsg := fmt.Sprintf("Error producing message [%s] to <%s>:\t%v", gotFromDB, config.TopicName, err)
+		log.Println(errMsg)
+		http.Error(w, errMsg, http.StatusInternalServerError)
 
 		return
 	}
+
+	linkToResult := "/" + gotFromDB.ID
+	response := fmt.Sprintf("<h3><a href='%s'>%s</a></h3><p><h2><a href='/'>HOME</a></h2>", linkToResult, linkToResult)
+	w.Write([]byte(response))
 }
 
 func getTaskFromRequest(reqValues url.Values) model.TaskFromAPI {

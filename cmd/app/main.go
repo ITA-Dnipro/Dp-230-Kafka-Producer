@@ -18,7 +18,7 @@ func main() {
 	defer stop()
 
 	// TODO: don't panic
-	tmpl := template.Must(template.ParseFiles(filepath.Join("templates", "report.html")))
+	tmpl := template.Must(template.ParseFiles(filepath.Join(os.Getenv("PATH_TO_TEMPLATES"), "report.html")))
 
 	app := config.NewApp()
 	defer app.Close()
